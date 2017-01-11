@@ -1,0 +1,48 @@
+version: "3"
+
+services:
+
+  consul:
+    image: consul:latest
+    ports:
+      - "6379"
+      - "8400:8400" 
+      - "8500:8500/tcp" 
+      - "8600:53/udp"
+    networks:
+      - vault-network
+    environment:
+      - 'CONSUL_LOCAL_CONFIG={ "bootstrap":true, "datacenter":"dc1", "data_dir":"/consul/data", "server":true }'
+      - 'CONSUL_CLIENT_INTERFACE=eth2'
+      - 'CONSUL_BIND_INTERFACE=eth2'
+    volumes:
+      - consul-data:/consul/data
+    command: [ "agent" ]
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+
+  vault:
+    image: sjourdan/vault
+    environment: 
+      - 'VAULT_ADDR=http://127.0.0.1:8200'
+    networks:
+      - vault-network
+    ports:
+      - "8200:8200"
+    volumes:
+      - /etc/vault:/config
+    command: [ "server", "-config=/config/consul.hcl" ]
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+
+networks:
+  vault-network:
+
+volumes:
+  consul-data:
