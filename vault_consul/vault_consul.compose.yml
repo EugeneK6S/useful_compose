@@ -12,12 +12,13 @@ services:
     networks:
       - vault-network
     environment:
+      # - 'CONSUL_LOCAL_CONFIG={ "acl_datacenter":"dc1", "acl_default_policy":"deny", "acl_down_policy":"extend-cache", "acl_master_token":"secret_masta_token", "bootstrap":true, "datacenter":"dc1", "data_dir":"/consul/data", "server":true }'
       - 'CONSUL_LOCAL_CONFIG={ "bootstrap":true, "datacenter":"dc1", "data_dir":"/consul/data", "server":true }'
       - 'CONSUL_CLIENT_INTERFACE=eth2'
       - 'CONSUL_BIND_INTERFACE=eth2'
     volumes:
       - consul-data:/consul/data
-    command: [ "agent" ]
+    command: [ "agent" ] # , "-server", "-bind", "127.0.0.1", "-client", "0.0.0.0", "-bootstrap" ]
     deploy:
       mode: replicated
       replicas: 1
@@ -46,3 +47,68 @@ networks:
 
 volumes:
   consul-data:
+
+  # voting-app:
+  #   image: gaiadocker/example-voting-app-vote:good
+  #   ports:
+  #     - 5000:80
+  #   networks:
+  #     - voteapp
+  #   depends_on:
+  #     - redis
+  #   deploy:
+  #     mode: replicated
+  #     replicas: 2
+  #     labels: [APP=VOTING]
+  #     placement:
+  #       constraints: [node.role == worker]
+
+  # result-app:
+  #   image: gaiadocker/example-voting-app-result:latest
+  #   ports:
+  #     - 5001:80
+  #   networks:
+  #     - voteapp
+  #   depends_on:
+  #     - db
+
+  # worker:
+  #   image: gaiadocker/example-voting-app-worker:latest
+  #   networks:
+  #     voteapp:
+  #       aliases:
+  #         - workers
+  #   depends_on:
+  #     - db
+  #     - redis
+  #   # service deployment
+  #   deploy:
+  #     mode: replicated
+  #     replicas: 2
+  #     labels: [APP=VOTING]
+  #     # service resource management
+  #     resources:
+  #       # Hard limit - Docker does not allow to allocate more
+  #       limits:
+  #         cpus: '0.25'
+  #         memory: 512M
+  #       # Soft limit - Docker makes best effort to return to it
+  #       reservations:
+  #         cpus: '0.25'
+  #         memory: 256M
+  #     # service restart policy
+  #     restart_policy:
+  #       condition: on-failure
+  #       delay: 5s
+  #       max_attempts: 3
+  #       window: 120s
+  #     # service update configuration
+  #     update_config:
+  #       parallelism: 1
+  #       delay: 10s
+  #       failure_action: continue
+  #       monitor: 60s
+  #       max_failure_ratio: 0.3
+  #     # placement constraint - in this case on 'worker' nodes only
+  #     placement:
+  #       constraints: [node.role == worker]
