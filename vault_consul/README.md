@@ -7,3 +7,8 @@ To run the deployment, please execute the following command:
 ```
 docker deploy --compose-file vault_consul.compose.yml <name of the stack>
 ```
+
+
+Credits:
+- https://github.com/sjourdan for Dockerizing Vault;
+- Hashicorp for creating awesome tools.
